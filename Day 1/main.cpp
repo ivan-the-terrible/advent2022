@@ -5,12 +5,14 @@ using namespace std;
 
 int part1()
 {
-string line;
+  string line;
   ifstream myfile("input.txt");
+
+  int highestCalorie, totalCalories;
+  highestCalorie = totalCalories = 0;
+
   if (myfile.is_open())
   {
-    int highestCalorie, totalCalories;
-    highestCalorie = totalCalories = 0;
     while (getline(myfile, line))
     {
       if (line.empty())
@@ -23,19 +25,21 @@ string line;
         totalCalories += stoi(line);
       }
     }
-    myfile.close();
-    return highestCalorie;
   }
+  myfile.close();
+  return highestCalorie;
 }
 int part2()
 {
   //Get top 3 totals and sum them.
   string line;
   ifstream myfile("input.txt");
+
+  int first, second, third, totalCalories;
+  first = second = third = totalCalories = 0;
+
   if (myfile.is_open())
   {
-    int first, second, third, totalCalories;
-    first = second = third = totalCalories = 0;
     while (getline(myfile, line))
     {
       if (line.empty())
@@ -61,10 +65,10 @@ int part2()
         totalCalories += stoi(line);
       }
     }
-    myfile.close();
-    int sum = first + second + third;
-    return sum;
   }
+  myfile.close();
+  int sum = first + second + third;
+  return sum;
 }
 
 int main()
