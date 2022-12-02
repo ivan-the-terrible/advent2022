@@ -3,8 +3,9 @@
 #include <string>
 using namespace std;
 
-class Round {
-  public:
+//Base Class
+class StrategyGuideRound {
+  protected:
     int score;
     int opponentValue;
     int userValue;
@@ -21,6 +22,18 @@ class Round {
         return -1;
       }
     }
+  public:
+    int getScore() {
+      return score;
+    }
+    StrategyGuideRound(char opponentChoice) {
+      opponentValue = determineOpponentValue(opponentChoice);
+    }
+};
+
+//Derived Classes
+class EncryptedRound : public StrategyGuideRound {
+  private:
     int determineUserValue(char choice) {
       switch (choice)
       {
@@ -43,7 +56,6 @@ class Round {
       {
       case 0: //draw
         return 3;
-        break;
       case 1: //win
         return 6;
       case 2: //lose
@@ -52,14 +64,51 @@ class Round {
         return -1;
       }
     }
-    Round(char opponentChoice, char userChoice) {
-      opponentValue = determineOpponentValue(opponentChoice);
+  public:
+    EncryptedRound(char opponentChoice, char userChoice) : StrategyGuideRound(opponentChoice) {
       userValue = determineUserValue(userChoice);
       score = determineOutcome(opponentValue, userValue) + (userValue + 1); //need to add 1 to offset the RPS values I needed to enumerate for use of modulo 3
     }
 };
 
-int part1() {
+class DecryptedRound : public StrategyGuideRound {
+  private:
+    int determineUserValue(int opponentValue, char outcome) { //unused, just a proof
+      switch (outcome)
+      {
+      case 'X': //lose
+        return (opponentValue + 2) % 3; //0, 1, 2 input produces 2, 0, 1
+      case 'Y': //draw
+        return opponentValue;
+      case 'Z': //win
+        return (opponentValue + 1) % 3; //0, 1, 2 input produces 1, 2, 0
+      default:
+        return -1;
+      }
+    }
+    int determineScore(int opponentValue, char outcome) {
+      //need to add 1 to offset the RPS values I needed to enumerate for use of modulo 3
+      switch (outcome)
+      {
+      case 'X': //lose
+        return ((opponentValue + 2) % 3) + 1;
+      case 'Y': //draw
+        return (opponentValue + 1) + 3; // + 3 for draw
+      case 'Z': //win
+        return (opponentValue + 1) % 3 + 7; // + 7 comes from 6 for winning and 1 for choice offset
+      default:
+        return -1;
+      }
+    }
+
+  public:
+    DecryptedRound(char opponentChoice, char outcome) : StrategyGuideRound(opponentChoice) {
+      //userValue = determineUserValue(opponentValue, outcome);
+      score = determineScore(opponentValue, outcome);
+    }
+};
+
+int calculateTotalScore(bool useEncryptedGuide) {
   string line;
   ifstream myfile("input.txt");
 
@@ -68,8 +117,13 @@ int part1() {
   if (myfile.is_open()) {
     while (getline(myfile, line)) {
       if (!line.empty()) {
-        Round currentRound(line[0], line[2]);
-        totalScore += currentRound.score;
+        if (useEncryptedGuide) {
+          EncryptedRound currentRound(line[0], line[2]);
+          totalScore += currentRound.getScore();
+        } else {
+          DecryptedRound currentRound(line[0], line[2]);
+          totalScore += currentRound.getScore();
+        }
       }
     }
   }
@@ -78,19 +132,23 @@ int part1() {
 }
 
 int main() {
-  int totalScore = part1();
+  int encryptedScore = calculateTotalScore(true);
+  int decryptedScore = calculateTotalScore(false);
 
-  cout << "Strategy Guide Total Score: " << totalScore;
+  cout << "Encrypted Strategy Guide Total Score: " << encryptedScore << endl;
+  cout << "Decrypted Strategy Guide Total Score: " << decryptedScore;
 }
 
 /*
+  PART 1
+  -------------------------
   Strategy Guide Input: first column is opponent's play, second column is user's play
-  Enum opponent = { A = rock, B = paper, C = scissors }
-  Enum user = { X = rock, Y = paper, Z = scissors }
+  opponent = { A = rock, B = paper, C = scissors }
+  user = { X = rock, Y = paper, Z = scissors }
 
   Winner of tournament is player with highest score.
   Total Score = ∑(round's score)
-  Round Score = outcome + shape
+  EncryptedRound Score = outcome + shape
     Enum outcomeScore = { lost = 0, draw = 3, won = 6 }
     Enum shapeScore = { rock = 1, paper = 2, scissors = 3 }
 
@@ -100,6 +158,22 @@ int main() {
     C   Z      - opponent (C = scissors) and user (Z = scissors), draw with score of 6 (scissors = 3 + draw = 3, thus 6)
 
   Thus, total score of 15 (8 + 1 + 6)
+*/
+/*
+  PART 2
+  -------------------------
+  Strategy Guide Input: first column is opponent's play, second column is outcome
+  opponent = { A = rock, B = paper, C = scissors }
+  outcome = { X = lose, Y = draw, Z = win}
+
+  Need to determine user's shape. Formulated like this: outcome + opponentChoice = userChoice
+
+  Example:
+    A   Y     - opponent (A = rock) and outcome (Y = draw) thus user chooses rock with score of 4 (rock = 1 + draw = 3, thus 4)
+    B   X     - opponent (B = paper) and outcome (X = lose) thus user chooses rock with score of 1 (rock = 1 + lose = 0, thus 1)
+    C   Z     - opponent (C = scissors) and outcome (Z = win) thus user chooses rock with score of 7 (rock = 1 + win = 6, thus 7)
+
+    Thus, total score of 12 (4 + 1 + 7)
 */
 
 /*
