@@ -4,7 +4,9 @@ Site: https://adventofcode.com/2022
 
 ## C++
 
-I'm learning C++ and these challenges have so far been a great learning tool to getting familiar with a new language!
+I'm learning C++ and I'm dedicating the entire challenge to this language to boost my proficiency.
+
+These challenges have so far been a great learning tool for getting familiar with a new language!
 
 ## So far I've learned:
 
